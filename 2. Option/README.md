@@ -78,3 +78,45 @@ const credentials = pipe(
 vogliamo ottenere le credenziali del primo impiegato che abbia lo stesso ruolo del manager del dipartimento a cui il primo afferisce. Una volta ottenuto il primo impiegato della lista ed inserito questo nell'oggetto _Option_. Usiamo la funzione __map__ per convertire l'oggetto impiegato se presente, in una stringa contenente le credenziali di questo, e quindi convertiamo la stringa in maiuscolo.
 
 Come possiamo vedere, è la funzione __map__ che si occupa di convertire il contenuto di _Option_, ed eventualmente gestire il caso in cui questo sia None.
+
+## Operatori Flatted & Chain 
+
+Commentiamo l'esempio descritto nel file [option-flatten-chain.ts](./option-flatten-chain.ts), e consideriamo il caso in cui da un insieme di Impiegati, si voglia ottenere il primo impiegato che sia afferente ad un certo dipartimento, e quindi vogliamo che vengano restituite le sue credenziali se questo è un impiegato under 35, altrimenti non deve essere restituito nulla.
+
+Nella prima versione di questa implementazione, possiamo scrivere:
+
+```typescript
+const firstWithRole = (employees: Array<Employee>): Option<Employee> => {
+	return some(
+		employees.filter((employee: Employee) => {
+			return employee.role == Role.HR;
+		})[0]
+	);
+};
+
+const getUnder35 = (employee: Employee): Option<Employee> => {
+	if (employee.age < 35) {
+		return some(employee);
+	}
+	return none;
+};
+
+pipe(employees, firstWithRole, map(getUnder35));
+```
+
+però, il risultato della funzione pipe, non è un _Optional\<Employee\>_, ma bensì un _Optional\<Optional\<Employee\>\>_. Questo comportamento però è completamente normale, in quanto come descritto dalle funzioni, non è detto che anche se la funzione _firstWithRole_ ci restituisce un Employee, questo valore venga restituito anche dalla funzione _getUnder35_, perché appunto non è detto che l'impiegato sia un under 35. Come fare allora?
+
+Fortunatamente la libreria fp-ts mette a disposizione una nuova funzione chiamata _flatten_, che si occupa letteralmente di spacchettare questi _Optional_ annidati nel seguente modo:
+
+```typescript
+const employee = pipe(employees, firstWithRole, map(getUnder35), flatten);
+```
+
+Questo pattern di operatori _map_ seguiti da un _flatten_ è così comune che si è deciso di implementare una funzione che unisca le caratteristiche di entrambe, ossia la funzione _chain_. Il risultato finale del nostro esempio sarà quindi:
+
+```typescript
+const employee = pipe(employees, firstWithRole, chain(getUnder35));
+```
+
+
+
