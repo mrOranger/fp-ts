@@ -154,3 +154,63 @@ function getJuniorEmployeeCredentials (employee : Employee) {
 
 controlla se il parametro _employee_ sia effettivamente un impiegato junior, attraverso il predicato _isJunior_, e quindi ne estrare le credenziali usando una combinazione tra la funzione _map_ e la funzione _getCredentials_. Infine, usando la funzione _match_, restituiamo la stringa informativa sull'impiegato.
 
+## Error Handling con Option
+
+Siamo giunti all'ultimo paragrafo di questo capitolo su Option, e forse il più importante. Fino a questo momento ci siamo limitati a vedere esempi relativamente semplici, sugli operatori standard messi a disposizione per questo tipo. Tuttavia, la forza di questo costrutto risiede nella capacità di semplificare notevolemente la gestione degli errori, o _error handling_ ed è un concetto fondamentale del _railway oriented programming_. 
+
+Consideriamo il seguente esempio che vogliamo implementare. Considerando un impiegato, vogliamo che venga stampata una stringa contenente la descrizione di questo, e l'indicazione che è un dirigente, se questo è appunto un dirigente di dipartimento. Se alternativamente questo impiegato non è un dirigente, allora vogliamo che venga stampata una stringa che indichi se questo è un impiegato junior. Infine, se l'impiegato non è un dirigente e non è neanche junior, allora vogliamo che venga stampata semplicemente una strnga che contenga le informazioni anagrafiche dell'impiegato.
+
+Cominciamo implementando la prima parte, ossia, controlliamo se un impiegato è un dirigente ed in quel caso restituiamo la stringa che lo descrive:
+
+```typescript
+const getManagerCredentials = (employee: Employee) => {
+	return pipe(
+		employee,
+		fromPredicate(
+			(employee) =>
+				department.manager.firstName == employee.firstName && department.manager.lastName == employee.lastName
+		),
+		map((employee) => `${employee.firstName} ${employee.lastName} is a manager.`)
+	);
+};
+```
+
+quindi usando l'operatore _pipe_ abbiamo controllato attraverso un predicato, se l'impiegato è un dirigente, ed in caso positivo, eseguito l'operatore _map_ su questo, restituendo la stringa descrittiva. 
+
+Con una logica completamente simile, descriviamo la seconda parte della consegna, che riguarda l'impiegato junior:
+
+```typescript
+const getJuniorEmployeeCredentials = (employee: Employee) => {
+	return pipe(
+		employee,
+		fromPredicate(
+			(employee) =>
+				employee.age < 30
+		),
+		map((employee) => `${employee.firstName} ${employee.lastName} is a junior employee.`)
+	);
+};
+```
+
+Arrivati a questo punto, come concatendiamo queste due funzioni implementando una logica condizionale? Usiamo il nuovo operatore __alt__ (alternative), che esegue una funzione, nel caso in cui il valore di un Option sia _None_:
+
+```typescript
+const credentials = pipe(
+	employee, 
+	getManagerCredentials,
+	alt(() => getJuniorEmployeeCredentials(employee)),
+);
+```
+
+quindi, nel caso in cui la funzione _getManagerCredentials_ restituisca None, allora verrà eseguita la funzione descritta dall'operatore _alt_. Infine, dobbiamo però restituire la stringa descrittiva dell'impiegato, oppure una stringa che indichi che questo è un semplice impiegato. Possiamo eseguire quest'ultima operazione usando un nuovo operatore, chiamato _getOrElse_:
+
+```typescript
+const credentials = pipe(
+	employee, 
+	getManagerCredentials,
+	alt(() => getJuniorEmployeeCredentials(employee)),
+	getOrElse(() => `${employee.firstName} ${employee.lastName} is a simple employee.`)
+);
+```
+
+_getOrElse_ restituirà il contenuto di Option nel caso in cui questo non sia None, altrimenti eseguirà la funzione e restituirà il valore restituito da questa. 
