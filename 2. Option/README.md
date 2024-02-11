@@ -118,5 +118,39 @@ Questo pattern di operatori _map_ seguiti da un _flatten_ è così comune che si
 const employee = pipe(employees, firstWithRole, chain(getUnder35));
 ```
 
+## Operatore Predicate
+L'operatore _Option.fromPredicate_ restituisce un Option contenente il valore dell'oggetto su cui si sta predicando, se il predicato è vero, altrimenti restituisce un _None_. Nell'esempio contenuto nel file [option-predicate.ts](./option-predicate.ts), vogliamo ottenere le credenziali di un impiegato se questo è di livello junior, altrimenti un messaggio che di indichi che questo non è un impiegato junior:
 
+```typescript
+const isJunior = (employee : Employee) => {
+	return employee.age < 30;
+};
+```
+la funzione _isJunior_ è appunto un __Predicato__, ossia una funzione che prende in input un valore e restituisce _true_ o _false_ se questo soddisfa o no una condizione. Mentre:
+
+```typescript
+const getCredentials = (employee : Employee) => {
+	return `${employee.firstName} ${employee.lastName} is ${employee.age} years old, working as ${employee.role}`;
+}
+```
+
+è una funzione di servizio che useremo per mappare le informazioni dell'impiegato, nel caso in cui il predicato che sia stato eseguito su questo, abbia restituito un valore true. 
+
+Infine, la funzione:
+
+```typescript
+function getJuniorEmployeeCredentials (employee : Employee) {
+	return pipe(
+		employee,
+		fromPredicate(isJunior),
+		map(getCredentials),
+		match(
+			() => `${employee.firstName} ${employee.lastName} is not a junior employee`,
+			(credentials) => credentials
+		)
+	)
+}
+```
+
+controlla se il parametro _employee_ sia effettivamente un impiegato junior, attraverso il predicato _isJunior_, e quindi ne estrare le credenziali usando una combinazione tra la funzione _map_ e la funzione _getCredentials_. Infine, usando la funzione _match_, restituiamo la stringa informativa sull'impiegato.
 
