@@ -1,11 +1,11 @@
 {
-    "editor.fontFamily": "Monaco",
+    "editor.fontFamily": "Cascadia Code",
     "editor.fontSize": 15,
     "editor.fontLigatures": true,
-    "editor.lineHeight": 26,
-    "editor.letterSpacing": 0.5,
+    "editor.lineHeight": 1.7,
+	"workbench.colorTheme": "Sublime Material Theme - Dark",
     "terminal.integrated.fontFamily": "Monaco",
     "terminal.integrated.lineHeight": 1.75,
     "terminal.integrated.fontSize": 13,
-    "terminal.integrated.fontWeight": "normal"
+    "terminal.integrated.fontWeight": "normal",
 }
